@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <header>
+        seu usuario: <span id="cur">nenhum</span>
+    </header>
+
+    <h1>Testar Registrations</h1>
+    <h2>Verificar se estou registrado em uma Talk</h2>
+    <form id="IsRegistered" action="" method="get">
+        <label for="regTalkIdCheck">Talk ID:</label>
+        <input type="text" id="regTalkIdCheck" name="talkId" required>
+        <br><br>
+        <button type="submit">Verificar registro</button>
+        <div class="isRegistered"></div>
+    </form>
+
+    <h2>Registrar em uma Talk</h2>
+    <form id="RegisterInTalk" action="" method="post">
+        <label for="regTalkId">Talk ID:</label>
+        <input type="text" id="regTalkId" name="talkId" required>
+        <br><br>
+        <button type="submit">Registrar</button>
+    </form>
+
+    <h2>Cancelar registro em uma Talk</h2>
+    <form id="UnregisterFromTalk" action="" method="post">
+        <label for="unregTalkId">Talk ID:</label>
+        <input type="text" id="unregTalkId" name="talkId" required>
+        <br><br>
+        <button type="submit">Cancelar registro</button>
+    </form>
+
+    <script>
+
+        let authToken = localStorage.getItem('authToken') || '';
+        let currentUser = localStorage.getItem('currentUser') || '';
+
+        function authHeaders() {
+            return authToken ? { Authorization: 'Bearer ' + authToken } : {};
+        }
+    
+        const isRegisteredForm = document.getElementById('IsRegistered');
+        const isRegisteredDiv = document.querySelector('.isRegistered');
+        isRegisteredForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('regTalkIdCheck').value;
+            isRegisteredDiv.innerHTML = 'Carregando...';
+            try {
+                const res = await axios.get(`http://127.0.0.1:5000/registration/${encodeURIComponent(id)}/is_registered`, { headers: authHeaders() });
+                isRegisteredDiv.innerHTML = '<pre>' + JSON.stringify(res.data, null, 2) + '</pre>';
+            } catch (err) {
+                isRegisteredDiv.innerHTML = 'Erro: ' + (err.response ? JSON.stringify(err.response.data) : err.message);
+            }
+        });
+
+        const registerForm = document.getElementById('RegisterInTalk');
+        registerForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('regTalkId').value;
+            try {
+                const res = await axios.post(`http://127.0.0.1:5000/registration/${encodeURIComponent(id)}/register`, {}, { headers: authHeaders() });
+                alert('Registrado: ' + JSON.stringify(res.data));
+            } catch (err) {
+                alert('Erro ao registrar: ' + (err.response ? JSON.stringify(err.response.data) : err.message));
+            }
+        });
+
+        const unregisterForm = document.getElementById('UnregisterFromTalk');
+        unregisterForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('unregTalkId').value;
+            try {
+                const res = await axios.post(`http://127.0.0.1:5000/registration/${encodeURIComponent(id)}/unregister`, {}, { headers: authHeaders() });
+                alert('Registro cancelado: ' + JSON.stringify(res.data));
+            } catch (err) {
+                alert('Erro ao cancelar registro: ' + (err.response ? JSON.stringify(err.response.data) : err.message));
+            }
+        });
+
+        function updateStatus() {
+            const curSpan = document.getElementById('cur');
+            curSpan.textContent = currentUser || 'nenhum';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+        });
+    </script>
+</body>
+</html>

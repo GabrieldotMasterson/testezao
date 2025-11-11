@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <header>
+        seu usuario: <span id="cur">nenhum</span>
+    </header>
+    <h2>Criar novo user</h2>,
+    <!-- form pro cadastro
+     adicionar um v-if pra isso so existir se o user n tiver logado-->
+    <form id="Cadastro" action="" method="post">
+        <label for="cad_name">name:</label>
+        <input type="text" id="cad_name" name="name" required>
+        <br><br>
+        <label for="cad_password">Senha:</label>
+        <input type="password" id="cad_password" name="password" required>
+        <br><br>
+        <label for="cad_email">Email</label>
+        <input type="email" id="cad_email" name="email" required>
+        <br><br>
+        <label for="cad_birthdate">data de nascimento</label>
+        <input type="date" id="cad_birthdate" name="birthdate" required>
+        <br><br>
+        <button type="submit">Cadastro</button>
+    </form>
+
+    <h2>Sobre mim</h2>
+    <form id="AboutMe" action="">
+        <button type="submit">minha informaçoes</button>
+        <div class="infoMe"></div>
+    </form>
+
+    <h2>Editar perfil</h2>
+    <form id="EditProfile" action="" method="post">
+        <label for="edit_name">name:</label>
+        <input type="text" id="edit_name" name="name" required>
+        <br><br>
+        <label for="edit_password">Senha:</label>
+        <input type="password" id="edit_password" name="password" required>
+        <br><br>
+        <label for="edit_email">Email</label>
+        <input type="email" id="edit_email" name="email" required>
+        <br><br>
+        <label for="edit_birthdate">data de nascimento</label>
+        <input type="date" id="edit_birthdate" name="birthdate" required>
+        <br><br>
+        <button type="submit">Editar perfil</button>
+    </form>
+
+    <h2>Ver usuario por id</h2>
+    <form id="UserById" action="" method="get">
+        <label for="userId">User ID:</label>
+        <input type="text" id="userId" name="userId" required>
+        <br><br>
+        <button type="submit">ver usuario</button>
+        <div class="userById"></div>
+    </form>
+
+    <h2>Ver usuarios</h2>
+    <form id="UsersList" action="Users">
+        <button type="submit">ver usuarios</button>
+        <div class="allUsers"></div>
+    </form>
+
+    <h2>Deletar conta</h2>
+    <form id="DeleteAccount" action="" method="post">
+        <button type="submit">Deletar conta</button>
+    </form>
+
+    <h2>Deletar conta de usuario por id</h2>
+    <form id="DeleteUserById" action="" method="post">
+        <label for="userIdToDelete">User ID:</label>
+        <input type="text" id="userIdToDelete" name="userId" required>
+        <br><br>
+        <button type="submit">Deletar usuario</button>
+    </form>
+
+    <script>
+
+        let authToken = localStorage.getItem('authToken') || '';
+        let currentUser = localStorage.getItem('currentUser') || '';
+
+        function authHeaders() {
+            return authToken ? { Authorization: 'Bearer ' + authToken } : {};
+        }
+
+        //CADASTRO
+        const cadastroForm = document.getElementById('Cadastro');
+        cadastroForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const username = document.getElementById('cad_name').value;
+            const password = document.getElementById('cad_password').value;
+            const email = document.getElementById('cad_email').value;
+            const birthdate = document.getElementById('cad_birthdate').value;
+            try {
+                const res = await axios.post('http://127.0.0.1:5000/users/', {
+                    username, password, email, birthdate
+                });
+                alert('Cadastro realizado: ' + JSON.stringify(res.data));
+            } catch (err) {
+                alert('Erro no cadastro: ' + (err.response ? JSON.stringify(err.response.data) : err.message));
+            }
+        });
+
+        // sobre
+        const aboutForm = document.getElementById('AboutMe');
+        const infoMeDiv = document.querySelector('.infoMe');
+        aboutForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            infoMeDiv.innerHTML = 'Carregando...';
+            try {
+                const res = await axios.get('http://127.0.0.1:5000/users/me', { headers: authHeaders() });
+                infoMeDiv.innerHTML = '<p>Informações do usuário:</p> <p> seu nome </p> ' + res.data.username + '<pre>' + JSON.stringify(res.data, null, 2) + '</pre>';
+                
+            } catch (err) {
+                infoMeDiv.innerHTML = 'Erro: ' + (err.response ? JSON.stringify(err.response.data) : err.message);
+            }
+        });
+
+        // editar
+        const editProfileForm = document.getElementById('EditProfile');
+        editProfileForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const username = document.getElementById('edit_name').value;
+            const password = document.getElementById('edit_password').value;
+            const email = document.getElementById('edit_email').value;
+            const birthdate = document.getElementById('edit_birthdate').value;
+            try {
+                const res = await axios.put('http://127.0.0.1:5000/users/', {
+                    username, password, email, birthdate
+                }, { headers: authHeaders() });
+                alert('Perfil atualizado: ' + JSON.stringify(res.data));
+            } catch (err) {
+                alert('Erro ao editar perfil: ' + (err.response ? JSON.stringify(err.response.data) : err.message));
+            }
+        });
+
+        // user por id
+        const userByIdForm = document.getElementById('UserById');
+        const userByIdDiv = document.querySelector('.userById');
+        userByIdForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('userId').value;
+            userByIdDiv.innerHTML = 'Carregando...';
+            try {
+                const res = await axios.get(`http://127.0.0.1:5000/users/${encodeURIComponent(id)}`, { headers: authHeaders() });
+                userByIdDiv.innerHTML = '<pre>' + JSON.stringify(res.data, null, 2) + '</pre>';
+            } catch (err) {
+                userByIdDiv.innerHTML = 'Erro: ' + (err.response ? JSON.stringify(err.response.data) : err.message);
+            }
+        });
+
+        // lista de usuarios
+        const usersListForm = document.getElementById('UsersList');
+        const allUsersDiv = document.querySelector('.allUsers');
+        usersListForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            allUsersDiv.innerHTML = 'Carregando...';
+            try {
+                const res = await axios.get('http://127.0.0.1:5000/users/');
+                allUsersDiv.innerHTML = '<pre>' + JSON.stringify(res.data, null, 2) + '</pre>';
+            } catch (err) {
+                allUsersDiv.innerHTML = 'Erro: ' + (err.response ? JSON.stringify(err.response.data) : err.message);
+            }
+        });
+
+        // deletar
+        const deleteAccountForm = document.getElementById('DeleteAccount');
+        deleteAccountForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            if (!confirm('Tem certeza que deseja deletar sua conta?')) return;
+            try {
+                await axios.delete('http://127.0.0.1:5000/users/me', { headers: authHeaders() });
+                authToken = '';
+                alert('Conta deletada.');
+            } catch (err) {
+                alert('Erro ao deletar conta: ' + (err.response ? JSON.stringify(err.response.data) : err.message));
+            }
+        });
+
+        // deletar usuario por id
+        const deleteUserByIdForm = document.getElementById('DeleteUserById');
+        deleteUserByIdForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('userIdToDelete').value;
+            if (!confirm('Deletar usuário ' + id + '?')) return;
+            try {
+                await axios.delete(`http://127.0.0.1:5000/users/${encodeURIComponent(id)}`, { headers: authHeaders() });
+                alert('Usuário deletado.');
+                
+            } catch (err) {
+                alert('Erro ao deletar usuário: ' + (err.response ? JSON.stringify(err.response.data) : err.message));
+            }
+        });
+
+        window.onload = function() {
+            loadSpeakers();
+        }
+
+        function updateStatus() {
+            const curSpan = document.getElementById('cur');
+            curSpan.textContent = currentUser || 'nenhum';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <header>
+        seu usuario: <span id="cur">nenhum</span>
+    </header>
+    <h1>Testar Talks</h1>
+    <h2>Criar Talk</h2>
+    <form id="CreateTalk" action="" method="post">
+        <label for="create_title">Title:</label>
+        <input type="text" id="create_title" name="title" required>
+        <br><br>
+        <label for="create_desc">descricao:</label>
+        <input type="text" id="create_desc" name="desc" required>
+        <br><br>
+        <label for="speakerSelect">Selecione o palestrante</label>
+        <select id="speakerSelect" name="speaker" required>
+            <option value="1">eu mesmo</option>
+        </select>
+        <br><br>
+        <label for="starts_at">Data e hora de início:</label>
+        <input type="datetime-local" id="starts_at" required>
+        <br><br>
+        <button type="submit">Criar Talk</button>
+    </form>
+
+    <h2>Ver todas as Talks</h2>
+    <form id="talksform" action="Talks">
+        <button type="submit">ver Talks</button>
+        <div class="allTalks"></div>
+    </form>
+
+    <h2>Ver Talk por id</h2>
+    <form id="TalkById" action="" method="get">
+        <label for="talkIdView">Talk ID:</label>
+        <input type="text" id="talkIdView" name="talkId" required>
+        <br><br>
+        <button type="submit">ver Talk</button>
+        <div class="talkById"></div>
+    </form>
+
+    <h2>Deletar Talk por id</h2>
+    <form id="DeleteTalkById" action="" method="post">
+        <label for="talk_id">Talk ID:</label>
+        <select name="talkId" id="talk_id">
+        </select>
+        <br><br>
+        <button type="submit">Deletar Talk</button>
+    </form>
+
+    <h2>Editar Talk por id</h2>
+    <form id="EditTalkById" action="" method="post">
+        <label for="talk_id_edit">Talk ID:</label>
+        <select name="talkId" id="talk_id_edit">
+        </select>
+        <br><br>
+        <label for="edit_title">Title:</label>
+        <input type="text" id="edit_title" name="title" required>
+        <br><br>
+        <label for="edit_desc">desc:</label>
+        <input type="text" id="edit_desc" name="desc" required>
+        <br><br>
+        <button type="submit">Editar Talk</button>
+    </form>
+    
+    <script>
+
+        let authToken = localStorage.getItem('authToken') || '';
+        let currentUser = localStorage.getItem('currentUser') || '';
+
+        function authHeaders() {
+            return authToken ? { Authorization: 'Bearer ' + authToken } : {};
+        }
+
+         // carregar palestrars
+        const talksForm = document.getElementById('talksform');
+        const allTalksDiv = document.querySelector('.allTalks');
+
+        async function fetchTalksDisplay() {
+            allTalksDiv.innerHTML = 'Carregando palestras...';
+            try {
+                const res = await axios.get('http://127.0.0.1:5000/talks?search=&page=0');
+                const talks = res.data.talks || res.data;
+                const total = res.data.total || (talks.length || 0);
+                allTalksDiv.innerHTML = '<p>' + total + ' palestras encontradas:</p>';
+                (talks || []).forEach(talk => {
+                    const talkDiv = document.createElement('div');
+                    talkDiv.innerHTML = `
+                        <h3>${talk.title}</h3>
+                        <p>${talk.description || ''}</p>
+                        <p><strong>Palestrante:</strong> ${talk.speaker_name || talk.speaker || ''}</p>
+                        <hr>
+                    `;
+                    allTalksDiv.appendChild(talkDiv);
+                });
+            } catch (err) {
+                allTalksDiv.innerHTML = 'Erro ao carregar palestras: ' + (err.response ? JSON.stringify(err.response.data) : err.message);
+            }
+        }
+
+        talksForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            fetchTalksDisplay();
+        });
+
+        // carregar palestrantes nos selects 
+        async function loadSpeakers() {
+            try {
+                const res = await axios.get('http://127.0.0.1:5000/users/');
+                const users = res.data.users || res.data;
+                const speakerSelect = document.getElementById('speakerSelect');
+                speakerSelect.innerHTML = '<option value="">Selecionar</option>';
+                (users || []).forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id || user.user_id || user.id;
+                    option.textContent = user.username || user.name || user.email;
+                    speakerSelect.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Erro ao carregar palestrantes:', err.response ? err.response.data : err.message);
+            }
+        }
+
+        // carregar palestras nos selects de delete/edit
+        async function populateTalkSelects() {
+            try {
+                const res = await axios.get('http://127.0.0.1:5000/talks?search=&page=0');
+                const talks = res.data.talks || res.data;
+                const selDel = document.getElementById('talk_id');
+                const selEdit = document.getElementById('talk_id_edit');
+                selDel.innerHTML = '';
+                selEdit.innerHTML = '';
+                (talks || []).forEach(talk => {
+                    const opt1 = document.createElement('option');
+                    opt1.value = talk.id || talk.talk_id;
+                    opt1.textContent = `${talk.id || talk.talk_id} - ${talk.title}`;
+                    selDel.appendChild(opt1);
+                    const opt2 = opt1.cloneNode(true);
+                    selEdit.appendChild(opt2);
+                });
+            } catch (err) {
+                console.error('Erro ao popular selects de talks:', err.response ? err.response.data : err.message);
+            }
+        }
+
+        // criar
+        const createTalkForm = document.getElementById('CreateTalk');
+        createTalkForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const title = document.getElementById('create_title').value;
+            const description = document.getElementById('create_desc').value;
+            const speakerId = document.getElementById('speakerSelect').value;
+            const speakerName = document.getElementById('speakerSelect').options[document.getElementById('speakerSelect').selectedIndex].text;
+            const startsAt = document.getElementById('starts_at').value;
+            try {
+                const res = await axios.post('http://127.0.0.1:5000/talks/', {
+                    title, description, speaker_id: speakerId, speaker_name: speakerName, starts_at: startsAt
+                }, { headers: authHeaders() });
+                alert('Talk criada com sucesso: ' + (res.data.title || JSON.stringify(res.data)));
+                
+            } catch (err) {
+                alert('Erro ao criar Talk: ' + (err.response ? JSON.stringify(err.response.data) : err.message));
+            }
+        });
+
+        //palestra por id
+        const talkByIdForm = document.getElementById('TalkById');
+        const talkByIdDiv = document.querySelector('.talkById');
+        talkByIdForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('talkIdView').value;
+            talkByIdDiv.innerHTML = 'Carregando...';
+            try {
+                const res = await axios.get(`http://127.0.0.1:5000/talks/${encodeURIComponent(id)}`);
+                talkByIdDiv.innerHTML = '<pre>' + JSON.stringify(res.data, null, 2) + '</pre>';
+            } catch (err) {
+                talkByIdDiv.innerHTML = 'Erro: ' + (err.response ? JSON.stringify(err.response.data) : err.message);
+            }
+        });
+
+        // deletar palestra
+        const deleteTalkForm = document.getElementById('DeleteTalkById');
+        deleteTalkForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('talk_id').value;
+            if (!id) return alert('Selecione uma talk');
+            if (!confirm('Deletar talk ' + id + '?')) return;
+            try {
+                await axios.delete(`http://127.0.0.1:5000/talks/${encodeURIComponent(id)}`, { headers: authHeaders() });
+                alert('Talk deletada.');
+    
+                fetchTalksDisplay();
+            } catch (err) {
+                alert('Erro ao deletar talk: ' + (err.response ? JSON.stringify(err.response.data) : err.message));
+            }
+        });
+
+        // editar
+        const editTalkForm = document.getElementById('EditTalkById');
+        editTalkForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const id = document.getElementById('talk_id_edit').value;
+            const title = document.getElementById('edit_title').value;
+            const description = document.getElementById('edit_desc').value;
+            if (!id) return alert('Selecione uma talk');
+            try {
+                const res = await axios.put(`http://127.0.0.1:5000/talks/${encodeURIComponent(id)}`, {
+                    title, description
+                }, { headers: authHeaders() });
+                alert('Talk editada: ' + JSON.stringify(res.data));
+                fetchTalksDisplay();
+            } catch (err) {
+                alert('Erro ao editar talk: ' + (err.response ? JSON.stringify(err.response.data) : err.message));
+            }
+        });
+
+        window.onload = function() {
+            loadSpeakers();
+            populateTalkSelects();
+
+        };
+
+        function updateStatus() {
+            const curSpan = document.getElementById('cur');
+            curSpan.textContent = currentUser || 'nenhum';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <header>
+        seu usuario: <span id="cur">nenhum</span>
+    </header>
+    <h1>Testar rotas de AUTH</h1>
+
+    <h2>Login</h2>
+    <form id="Login" action="" method="post">
+        <label for="loginName">name:</label>
+        <input type="text" id="loginName" name="name" required>
+        <br><br>
+        <label for="loginPassword">Senha:</label>
+        <input type="password" id="loginPassword" name="password" required>
+        <br><br>
+        <button type="submit">Login</button>
+    </form>
+
+    <h2>logout</h2>
+    <form id="Logout" action="" method="post">
+        <button type="submit">logout</button>
+    </form>
+
+    <script>
+        let authToken = localStorage.getItem('authToken') || '';
+        let currentUser = localStorage.getItem('currentUser') || '';
+
+        function authHeaders() {
+            return authToken ? { Authorization: 'Bearer ' + authToken } : {};
+        }
+
+        function updateStatus() {
+            const curSpan = document.getElementById('cur');
+            curSpan.textContent = currentUser || 'nenhum';
+        }
+
+        // login
+        const loginForm = document.getElementById('Login');
+        loginForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const name = document.getElementById('loginName').value;
+            const password = document.getElementById('loginPassword').value;
+            const status = document.getElementById('status');
+            
+            try {
+                const res = await axios.post('http://127.0.0.1:5000/auth/login', {
+                    username: name,
+                    password: password
+                });
+                
+                authToken = res.data.access_token || '';
+                
+                // LOCALSTORAGE
+                if (authToken) {
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('currentUser', name);
+                    currentUser = name;
+                }
+                
+                alert('Login bem-sucedido!');
+                document.getElementById('loginName').value = '';
+                document.getElementById('loginPassword').value = '';
+                updateStatus();
+                
+            } catch (err) {
+                alert('Erro ao fazer login: ' + (err.response ? err.response.data : err.message));
+            }
+        });
+
+        // logout
+        const logoutForm = document.getElementById('Logout');
+        logoutForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            try {
+                await axios.post('http://127.0.0.1:5000/auth/logout', {}, { headers: authHeaders() });
+            } catch (err) {
+                
+            }
+            
+            authToken = '';
+            currentUser = '';
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            
+            updateStatus();
+            alert('Desconectado');
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus();
+        });
+    </script>
+</body>
+</html>
