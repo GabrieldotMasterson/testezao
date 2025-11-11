@@ -98,7 +98,7 @@
             const email = document.getElementById('cad_email').value;
             const birthdate = document.getElementById('cad_birthdate').value;
             try {
-                const res = await axios.post('http://127.0.0.1:5000/users/', {
+                const res = await axios.post('https://backend-flask-phi.vercel.app/users/', {
                     username, password, email, birthdate
                 });
                 alert('Cadastro realizado: ' + JSON.stringify(res.data));
@@ -114,7 +114,7 @@
             event.preventDefault();
             infoMeDiv.innerHTML = 'Carregando...';
             try {
-                const res = await axios.get('http://127.0.0.1:5000/users/me', { headers: authHeaders() });
+                const res = await axios.get('https://backend-flask-phi.vercel.app/users/me', { headers: authHeaders() });
                 infoMeDiv.innerHTML = '<p>Informações do usuário:</p> <p> seu nome </p> ' + res.data.username + '<pre>' + JSON.stringify(res.data, null, 2) + '</pre>';
                 
             } catch (err) {
@@ -131,7 +131,7 @@
             const email = document.getElementById('edit_email').value;
             const birthdate = document.getElementById('edit_birthdate').value;
             try {
-                const res = await axios.put('http://127.0.0.1:5000/users/', {
+                const res = await axios.put('https://backend-flask-phi.vercel.app/users/', {
                     username, password, email, birthdate
                 }, { headers: authHeaders() });
                 alert('Perfil atualizado: ' + JSON.stringify(res.data));
@@ -148,7 +148,7 @@
             const id = document.getElementById('userId').value;
             userByIdDiv.innerHTML = 'Carregando...';
             try {
-                const res = await axios.get(`http://127.0.0.1:5000/users/${encodeURIComponent(id)}`, { headers: authHeaders() });
+                const res = await axios.get(`https://backend-flask-phi.vercel.app/users/${encodeURIComponent(id)}`, { headers: authHeaders() });
                 userByIdDiv.innerHTML = '<pre>' + JSON.stringify(res.data, null, 2) + '</pre>';
             } catch (err) {
                 userByIdDiv.innerHTML = 'Erro: ' + (err.response ? JSON.stringify(err.response.data) : err.message);
@@ -162,7 +162,7 @@
             event.preventDefault();
             allUsersDiv.innerHTML = 'Carregando...';
             try {
-                const res = await axios.get('http://127.0.0.1:5000/users/');
+                const res = await axios.get('https://backend-flask-phi.vercel.app/users/');
                 allUsersDiv.innerHTML = '<pre>' + JSON.stringify(res.data, null, 2) + '</pre>';
             } catch (err) {
                 allUsersDiv.innerHTML = 'Erro: ' + (err.response ? JSON.stringify(err.response.data) : err.message);
@@ -175,7 +175,7 @@
             event.preventDefault();
             if (!confirm('Tem certeza que deseja deletar sua conta?')) return;
             try {
-                await axios.delete('http://127.0.0.1:5000/users/me', { headers: authHeaders() });
+                await axios.delete('https://backend-flask-phi.vercel.app/users/me', { headers: authHeaders() });
                 authToken = '';
                 alert('Conta deletada.');
             } catch (err) {
@@ -190,7 +190,7 @@
             const id = document.getElementById('userIdToDelete').value;
             if (!confirm('Deletar usuário ' + id + '?')) return;
             try {
-                await axios.delete(`http://127.0.0.1:5000/users/${encodeURIComponent(id)}`, { headers: authHeaders() });
+                await axios.delete(`https://backend-flask-phi.vercel.app/users/${encodeURIComponent(id)}`, { headers: authHeaders() });
                 alert('Usuário deletado.');
                 
             } catch (err) {

@@ -53,7 +53,7 @@
             const id = document.getElementById('regTalkIdCheck').value;
             isRegisteredDiv.innerHTML = 'Carregando...';
             try {
-                const res = await axios.get(`http://127.0.0.1:5000/registration/${encodeURIComponent(id)}/is_registered`, { headers: authHeaders() });
+                const res = await axios.get(`https://backend-flask-phi.vercel.app/registration/${encodeURIComponent(id)}/is_registered`, { headers: authHeaders() });
                 isRegisteredDiv.innerHTML = '<pre>' + JSON.stringify(res.data, null, 2) + '</pre>';
             } catch (err) {
                 isRegisteredDiv.innerHTML = 'Erro: ' + (err.response ? JSON.stringify(err.response.data) : err.message);
@@ -65,7 +65,7 @@
             event.preventDefault();
             const id = document.getElementById('regTalkId').value;
             try {
-                const res = await axios.post(`http://127.0.0.1:5000/registration/${encodeURIComponent(id)}/register`, {}, { headers: authHeaders() });
+                const res = await axios.post(`https://backend-flask-phi.vercel.app/registration/${encodeURIComponent(id)}/register`, {}, { headers: authHeaders() });
                 alert('Registrado: ' + JSON.stringify(res.data));
             } catch (err) {
                 alert('Erro ao registrar: ' + (err.response ? JSON.stringify(err.response.data) : err.message));
@@ -77,7 +77,7 @@
             event.preventDefault();
             const id = document.getElementById('unregTalkId').value;
             try {
-                const res = await axios.post(`http://127.0.0.1:5000/registration/${encodeURIComponent(id)}/unregister`, {}, { headers: authHeaders() });
+                const res = await axios.post(`https://backend-flask-phi.vercel.app/registration/${encodeURIComponent(id)}/unregister`, {}, { headers: authHeaders() });
                 alert('Registro cancelado: ' + JSON.stringify(res.data));
             } catch (err) {
                 alert('Erro ao cancelar registro: ' + (err.response ? JSON.stringify(err.response.data) : err.message));

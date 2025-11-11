@@ -85,7 +85,7 @@
         async function fetchTalksDisplay() {
             allTalksDiv.innerHTML = 'Carregando palestras...';
             try {
-                const res = await axios.get('http://127.0.0.1:5000/talks?search=&page=0');
+                const res = await axios.get('https://backend-flask-phi.vercel.app/talks?search=&page=0');
                 const talks = res.data.talks || res.data;
                 const total = res.data.total || (talks.length || 0);
                 allTalksDiv.innerHTML = '<p>' + total + ' palestras encontradas:</p>';
@@ -112,7 +112,7 @@
         // carregar palestrantes nos selects 
         async function loadSpeakers() {
             try {
-                const res = await axios.get('http://127.0.0.1:5000/users/');
+                const res = await axios.get('https://backend-flask-phi.vercel.app/users/');
                 const users = res.data.users || res.data;
                 const speakerSelect = document.getElementById('speakerSelect');
                 speakerSelect.innerHTML = '<option value="">Selecionar</option>';
@@ -130,7 +130,7 @@
         // carregar palestras nos selects de delete/edit
         async function populateTalkSelects() {
             try {
-                const res = await axios.get('http://127.0.0.1:5000/talks?search=&page=0');
+                const res = await axios.get('https://backend-flask-phi.vercel.app/talks?search=&page=0');
                 const talks = res.data.talks || res.data;
                 const selDel = document.getElementById('talk_id');
                 const selEdit = document.getElementById('talk_id_edit');
@@ -159,7 +159,7 @@
             const speakerName = document.getElementById('speakerSelect').options[document.getElementById('speakerSelect').selectedIndex].text;
             const startsAt = document.getElementById('starts_at').value;
             try {
-                const res = await axios.post('http://127.0.0.1:5000/talks/', {
+                const res = await axios.post('https://backend-flask-phi.vercel.app/talks/', {
                     title, description, speaker_id: speakerId, speaker_name: speakerName, starts_at: startsAt
                 }, { headers: authHeaders() });
                 alert('Talk criada com sucesso: ' + (res.data.title || JSON.stringify(res.data)));
@@ -177,7 +177,7 @@
             const id = document.getElementById('talkIdView').value;
             talkByIdDiv.innerHTML = 'Carregando...';
             try {
-                const res = await axios.get(`http://127.0.0.1:5000/talks/${encodeURIComponent(id)}`);
+                const res = await axios.get(`https://backend-flask-phi.vercel.app/talks/${encodeURIComponent(id)}`);
                 talkByIdDiv.innerHTML = '<pre>' + JSON.stringify(res.data, null, 2) + '</pre>';
             } catch (err) {
                 talkByIdDiv.innerHTML = 'Erro: ' + (err.response ? JSON.stringify(err.response.data) : err.message);
@@ -192,7 +192,7 @@
             if (!id) return alert('Selecione uma talk');
             if (!confirm('Deletar talk ' + id + '?')) return;
             try {
-                await axios.delete(`http://127.0.0.1:5000/talks/${encodeURIComponent(id)}`, { headers: authHeaders() });
+                await axios.delete(`https://backend-flask-phi.vercel.app/talks/${encodeURIComponent(id)}`, { headers: authHeaders() });
                 alert('Talk deletada.');
     
                 fetchTalksDisplay();
@@ -210,7 +210,7 @@
             const description = document.getElementById('edit_desc').value;
             if (!id) return alert('Selecione uma talk');
             try {
-                const res = await axios.put(`http://127.0.0.1:5000/talks/${encodeURIComponent(id)}`, {
+                const res = await axios.put(`https://backend-flask-phi.vercel.app/talks/${encodeURIComponent(id)}`, {
                     title, description
                 }, { headers: authHeaders() });
                 alert('Talk editada: ' + JSON.stringify(res.data));
